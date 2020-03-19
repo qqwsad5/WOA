@@ -15,7 +15,7 @@ def create_db():
     # all SQL commands (split on ';')
     sqlCommands = sqlFile.split(';')
 
-    conn = sqlite3.connect('weibo.db')
+    conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
     c = conn.cursor()
 
     for command in sqlCommands:
