@@ -50,7 +50,7 @@ CREATE TABLE meta (
 );
 INSERT INTO meta VALUES ('rumorwords_update_yy', 2020)
 INSERT INTO meta VALUES ('rumorwords_update_mm', 3)
-INSERT INTO meta VALUES ('rumorwords_update_dd', 1)
+INSERT INTO meta VALUES ('rumorwords_update_dd', 20)
 INSERT INTO meta VALUES ('rumorwords_update_hh', 0)
 INSERT INTO meta VALUES ('rumorwords_update_mi', 0)
 INSERT INTO meta VALUES ('rumorwords_update_ss', 0)
