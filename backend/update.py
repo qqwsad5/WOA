@@ -22,13 +22,14 @@ def _same_day(date, date_time):
 def _insert_new_weibo(weibo, nr, ns, nt):
     Database.connect()
     weibo_sel = Database.select('weibo', columns=['weibo_id'], where={'weibo_id = ?': weibo.weibo_id})
-    if len(weibo_sel) > 0: continue
+    if len(weibo_sel) > 0:
+        return
 
     ## 微博的内容量 & 排除无具体内容的微博
     total_weight = Meta.CREDITS[0] * len(nr) + \
                    Meta.CREDITS[1] * len(ns) + \
                    Meta.CREDITS[2] * len(nt)
-    if total_weight < Meta.WEIGHT_THRES: continue
+    if total_weight < Meta.WEIGHT_THRES: return
 
     ## 涉及关键词的条目
     nx = ['nr', 'ns', 'nt']
@@ -40,8 +41,8 @@ def _insert_new_weibo(weibo, nr, ns, nt):
             entry_ids = [int(entry_id) for entry_id in entry[0].split(';')]
             entries_id = entries_id.union(set(entry_ids))
 
-    entries = Database.select('entries', columns=['nr_list', 'ns_list', 'nt_list'],\
-                                  where={'entry_id = ?': entries_id})
+    entries = Database.select_many('entries', columns=['nr_list', 'ns_list', 'nt_list'],\
+                                  where={'entry_id = ?': list(entries_id)})
 
     ## 找出最佳匹配 entry: bestmatch
     bestmatch = None
@@ -58,7 +59,8 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                  Meta.CREDITS[1] * len(entry_ns) + \
                  Meta.CREDITS[2] * len(entry_nt)
 
-        if (bestscore < matchscore) or                              # 匹配数更高：喜新厌旧
+        # 匹配数更高：喜新厌旧
+        if (bestscore < matchscore) or \
            (bestscore == matchscore and bestmatch_weight > weight): # 匹配数相同但新匹配关键词少更简洁：喜新厌旧
             bestmatch = entry
             bestscore = matchscore
@@ -102,6 +104,9 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                                        "",\
                                        weibo.pub_time])
 
+    user_id = int(weibo.weibo_id.split('/')[0])
+    Database.insert_if_not_exist('user_lut', values=[user_id, weibo.sender_nickname])
+
 
 def _insert_new_transmit(weibo):
     ## 经过前面的插入/跳过操作，原 weibo 已经在 table: weibo 中了
@@ -130,16 +135,20 @@ def _insert_new_transmit(weibo):
 
 ''' public methods here '''
 def create_fake_data():
-    user_id = ''
-    mid = ''
+    Database.connect()
+    user_id = '1686546714'
+    nickname = "环球网"
+    mid = 'Iz33N9J1h'
     weibo_id = user_id + '/' + mid
-    pub_time = ''
-    nr = []
+    pub_time = '2020-3-17 18:28:00'
+    content = "武汉病毒所辟谣石正丽“蚊虫或成第三宿主”言论：从未发布过。"
+    nr = ["石正丽"]
     ns = []
-    nt = []
+    nt = ["武汉病毒所"]
     trans_source = None
-    weibo = Weibo.Weibo(weibo_id, pub_time, content, nr, ns, nt, trans_source)
+    weibo = Weibo.Weibo(weibo_id, nickname, pub_time, content, nr, ns, nt, trans_source)
     _insert_new_weibo(weibo, nr, ns, nt)
+    Database.disconnect()
 
 
 def update_db():

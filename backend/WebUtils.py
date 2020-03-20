@@ -8,7 +8,7 @@ import hanlp
 '''parsing weibo'''
 def parseRaw(weibo_raw):
     pass
-    return mid, user_id, time, content, trans_source_uid_mid
+    return mid, nickname, user_id, time, content, trans_source_uid_mid
 
 
 def parseContent(content):
@@ -22,9 +22,10 @@ def parseTransList(weibo_raw):
 
 
 def init_from(weibo_raw):
-    mid, user_id, time, content, trans_source_uid_mid = parseRaw(weibo_raw)
+    mid, nickname, user_id, time, content, trans_source_uid_mid = parseRaw(weibo_raw)
     nr_list, ns_list, nt_list = parseContent(content)
     weiboDoc = Weibo(mid + "/" + str(user_id),\
+                     nickname,\
                      time,\
                      content,\
                      nr_list,\

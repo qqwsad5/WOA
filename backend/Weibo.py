@@ -4,14 +4,19 @@ class WeiboRaw: # a bs4 object?
         pass
 
 class Weibo:
-    def __init__(self, weibo_id, pub_time, content, nr, ns, nt, trans_source):
+    def __init__(self, weibo_id, sender_nickname, pub_time, content, nr, ns, nt, trans_source):
         self._weibo_id = weibo_id
+        self._sender_nickname = sender_nickname
         self._pub_time = pub_time
         self._content = content
         self._nr = nr
         self._ns = ns
         self._nt = nt
         self._trans_source = trans_source # another Weibo object
+
+    @property
+    def sender_nickname(self):
+        return self._sender_nickname
 
     @property
     def weibo_id(self):
