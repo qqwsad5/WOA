@@ -5,7 +5,8 @@ import Meta
 
 if __name__ == '__main__':
     Meta.load_hanlp_recognizer()
-    update.create_fake_data()
+    print("start db operations")
+    update.update_db()
     Meta.unload_hanlp_recognizer()
 
     '''

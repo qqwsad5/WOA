@@ -41,6 +41,10 @@ def connect():
     _conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
     _cursor = _conn.cursor()
 
+def commit():
+    global _conn
+    _conn.commit()
+
 def disconnect():
     global _conn
     global _cursor
@@ -77,17 +81,13 @@ def insert(table, values):
     global _cursor
     _cursor.execute("INSERT INTO {} VALUES {}".format(table, "(" + ",".join(['?' for _ in values]) + ")"),\
                    values)
-    _conn.commit()
 
 def insert_if_not_exist(table, values):
     global _conn
     global _cursor
-    print("INSERT OR IGNORE INTO {} VALUES {}".format(table, "(" + ",".join(['?' for _ in values]) + ")"))
-    print(values)
     _cursor.execute("INSERT OR IGNORE INTO {} VALUES {}"\
            .format(table, "(" + ",".join(['?' for _ in values]) + ")"),\
                    values)
-    _conn.commit()
 
 def update(table, values, where):
     global _conn
@@ -102,33 +102,31 @@ def update(table, values, where):
                         ",".join([column + " = ?" for column in columns]),\
                         conditional),\
                     argument)
-    _conn.commit()
 
 def read_update_time():
     global _cursor
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_yy')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_yy'])
     yy = _cursor.fetchall()[0][0]
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_mm')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_mm'])
     mm = _cursor.fetchall()[0][0]
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_dd')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_dd'])
     dd = _cursor.fetchall()[0][0]
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_hh')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_hh'])
     hh = _cursor.fetchall()[0][0]
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_mi')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_mi'])
     mi = _cursor.fetchall()[0][0]
-    _cursor.execute("SELECT value FROM meta WHERE name = ?", 'rumorwords_update_ss')
+    _cursor.execute("SELECT value FROM meta WHERE name = ?", ['rumorwords_update_ss'])
     ss = _cursor.fetchall()[0][0]
-    return datatime.datatime(yy,mm,dd,hh,mi,ss)
+    return datetime.datetime(yy,mm,dd,hh,mi,ss)
 
 def write_update_time():
     global _conn
     global _cursor
-    time = datetime.now()
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_yy', time.year))
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_mm', time.month))
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_dd', time.day))
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_hh', time.hour))
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_mi', time.minute))
-    _cursor.execute("INSERT INTO meta VALUES (?,?)", ('rumorwords_update_ss', time.second))
-    _conn.commit()
+    time = datetime.datetime.now()
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.year, 'rumorwords_update_yy'))
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.month, 'rumorwords_update_mm'))
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.day, 'rumorwords_update_dd'))
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.hour, 'rumorwords_update_hh'))
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.minute, 'rumorwords_update_mi'))
+    _cursor.execute("UPDATE meta SET value = ? WHERE name = ?", (time.second, 'rumorwords_update_ss'))
 

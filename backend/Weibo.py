@@ -39,6 +39,6 @@ class Weibo:
         return self._trans_source
 
     @property
-    def name_entities(self):
+    def named_entities(self):
         return self._nr, self._ns, self._nt
 

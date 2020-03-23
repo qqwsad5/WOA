@@ -8,7 +8,7 @@ UPDATE_TRANSMIT_ZONE = 30 # days
 CREDITS = [4, 1, 2]
 
 '''minimum weight for keyword sum'''
-WEIGHT_THRES = 4
+WEIGHT_THRES = 6
 
 '''sleep time until next update of database'''
 SLEEP = 24*60*60
@@ -76,10 +76,13 @@ def timestring2datetime(timestring):
         return datetime(*ymd)
 
 import hanlp
+global recognizer
 recognizer = None
 
 def load_hanlp_recognizer():
+    global recognizer
     recognizer = hanlp.load(hanlp.pretrained.ner.MSRA_NER_BERT_BASE_ZH)
 
 def unload_hanlp_recognizer():
+    global recognizer
     recognizer = None

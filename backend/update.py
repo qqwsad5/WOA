@@ -79,7 +79,7 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                     Database.insert(nx_name[i]+'_lut', values=[keyword, str(entry_count)])
                 else:
                     old_entry_list = nx_line[0][0]
-                    Database.update('entry_list', values={'entry_list': old_entry_list+';'+str(entry_count)}, \
+                    Database.update(nx_name[i]+'_lut', values={'entry_list': old_entry_list+';'+str(entry_count)}, \
                                                   where={nx_name[i] + "= ?": keyword})
 
         entry_count += 1
@@ -102,30 +102,33 @@ def _insert_new_weibo(weibo, nr, ns, nt):
 
 def _insert_new_transmit(weibo):
     ## 经过前面的插入/跳过操作，原 weibo 已经在 table: weibo 中了
-    dt_id_list_sel = Database.select('weibo', columns=['dt_id_list'], where={'weibo_id = ?': weibo.trans_source.weibo_id})
-    assert(len(dt_id_sel) > 0)
+    dt_id_list_sel = Database.select('weibo', columns=['dt_id_list'], where={'mid = ?': weibo.trans_source.mid})
+    assert(len(dt_id_list_sel) > 0)
 
     ## 查对dt_id_list
-    dt_id_list = [int(x) for x in dt_id_list_sel[0][0].split(';')]
-
-    date_transmission = Dataset.select_many('date_transmission', columns=['dt_id', 'dt_date', 'trans_id'], \
-                                             where={'dt_id = ?': dt_id_list})
-    
     dt = None
-    for dt in date_transmission:
-        if _same_day(datetime.datetime(dt[1]), weibo.pub_time):
-            break
+    if len(dt_id_list_sel[0][0]) > 0:
+        dt_id_list = [int(x) for x in dt_id_list_sel[0][0].split(';')]
+        date_transmission = Dataset.select_many('date_transmission', columns=['dt_id', 'dt_date', 'trans_id'], \
+                                             where={'dt_id = ?': dt_id_list})
+
+        for dt in date_transmission:
+            if _same_day(datetime.datetime(dt[1]), weibo.pub_time):
+                break
 
     if dt == None:
         # 插入新的 dt line 到 date_transmission table 中
-        dt_count = Database.select('meta', columns=['value'], where={'name': 'dt_count'})[0][0]
+        dt_count = Database.select('meta', columns=['value'], where={'name = ?': 'dt_count'})[0][0]
+        Database.update('weibo', values={'dt_id_list': str(dt_count)}, where={'mid = ?': weibo.trans_source.mid})
         date = datetime.datetime(weibo.pub_time.year, weibo.pub_time.month, weibo.pub_time.day)
         Database.insert('date_transmission', values=[dt_count, str(date), str(weibo.mid)])
         dt_count += 1
-        Database.update('meta', values={'value': dt_count}, where={'name': 'dt_count'})
+        Database.update('meta', values={'value': dt_count}, where={'name = ?': 'dt_count'})
+    else:
+        Database.update('date_transmission', values={'trans_id': dt[2]+";"+str(weibo.mid)}, where={"dt_id = ?", dt[0]})
 
     # 插入新的 transmitted 表项
-    Database.insert('transmitted', values=[weibo.mid, weibo.content, str(weibo.pub_time)])
+    Database.insert('transmitted', values=[weibo.mid, weibo.uid, weibo.content, str(weibo.pub_time)])
 
 
 ''' public methods here '''
@@ -142,6 +145,7 @@ def create_fake_data():
     trans_source = None
     weibo = Weibo.Weibo(mid, uid, nickname, pub_time, content, nr, ns, nt, trans_source)
     _insert_new_weibo(weibo, nr, ns, nt)
+    Database.commit()
     Database.disconnect()
 
 
@@ -165,9 +169,9 @@ def update_db():
             ## 关键词取原微博&转发微博的并集
             nr, ns, nt = weibo.named_entities
             nr_trans, ns_trans, nt_trans = related_weibo.named_entities
-            nr.extend(nr_trans)
-            ns.extend(ns_trans)
-            nt.extend(nt_trans)
+            [nr.append(nr_trans_item) for nr_trans_item in nr_trans if nr_trans_item not in nr]
+            [ns.append(ns_trans_item) for ns_trans_item in ns_trans if ns_trans_item not in ns]
+            [nt.append(nt_trans_item) for nt_trans_item in nt_trans if nt_trans_item not in nt]
         else:
             ## 通过关键词搜索方式找到的原微博
             weibo = related_weibo
@@ -182,17 +186,21 @@ def update_db():
 
         _insert_new_transmit(weibo)
 
+    Database.commit()
     # 2: search original weibo, transmit zone update
-    original_weibo_list = Database.select('weibo', columns=['weibo_id', 'update_time'], \
+    today = datetime.datetime.now()
+    after_time = today - datetime.timedelta(Meta.UPDATE_TRANSMIT_ZONE)
+    original_weibo_list = Database.select('weibo', columns=['mid', 'update_time'], \
                                           where={'weibo_time > datetime(?)': \
-                                                 str( datetime.datetime(datetime.now() - Meta.UPDATE_TRANSMIT_ZONE) )})
+                                                 str( after_time ) })
 
     for weibo_sel in original_weibo_list:
-        weibo_id = weibo_sel[0]
+        mid = weibo_sel[0]
         update_time = weibo_sel[1]
-        trans_list = WebUtils.get_trans_list(weibo_id, update_time)
+        trans_list = WebUtils.get_trans_list(mid, update_time)
         for transmission in trans_list:
             # 插入到 date_transmission, transmitted 中
             _insert_new_transmit(transmission)
 
+    Database.commit()
     Database.disconnect()
