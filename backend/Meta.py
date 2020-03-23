@@ -64,3 +64,22 @@ def url_to_mid(url):
         result.append(s)
     result.reverse()
     return int(''.join(result))
+
+def timestring2datetime(timestring):
+    if ' ' in timestring:
+        halves = timestring.split(' ')
+        ymd = [int(number) for number in halves[0].split('-')]
+        hms = [int(number) for number in halves[1].split(':')]
+        return datetime(*ymd, *hms)
+    else:
+        ymd = [int(number) for number in timestring.split('-')]
+        return datetime(*ymd)
+
+import hanlp
+recognizer = None
+
+def load_hanlp_recognizer():
+    recognizer = hanlp.load(hanlp.pretrained.ner.MSRA_NER_BERT_BASE_ZH)
+
+def unload_hanlp_recognizer():
+    recognizer = None

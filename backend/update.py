@@ -14,22 +14,15 @@ def _overlap(list1, list2):
 def _same_day(date, date_time):
     if date.year  == date_time.year and \
        date.month == date_time.month and \
-       date.date  == date_time.date:
+       date.day  == date_time.day:
         return True
     return False
 
-
 def _insert_new_weibo(weibo, nr, ns, nt):
     Database.connect()
-    weibo_sel = Database.select('weibo', columns=['weibo_id'], where={'weibo_id = ?': weibo.weibo_id})
+    weibo_sel = Database.select('weibo', columns=['mid'], where={'mid = ?': weibo.mid})
     if len(weibo_sel) > 0:
         return
-
-    ## 微博的内容量 & 排除无具体内容的微博
-    total_weight = Meta.CREDITS[0] * len(nr) + \
-                   Meta.CREDITS[1] * len(ns) + \
-                   Meta.CREDITS[2] * len(nt)
-    if total_weight < Meta.WEIGHT_THRES: return
 
     ## 涉及关键词的条目
     nx = ['nr', 'ns', 'nt']
@@ -75,9 +68,7 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                                             ';'.join(nr), \
                                             ';'.join(ns), \
                                             ';'.join(nt), \
-                                            weibo.weibo_id])
-        entry_count += 1
-        Database.update('meta', values={'value': entry_count}, where={'name = ?': 'entry_count'})
+                                            str(weibo.mid)])
         
         ### ns, nt, nr, entry_count -> nx_lut(update)
         nx_name = ['nr', 'ns', 'nt']
@@ -91,21 +82,22 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                     Database.update('entry_list', values={'entry_list': old_entry_list+';'+str(entry_count)}, \
                                                   where={nx_name[i] + "= ?": keyword})
 
+        entry_count += 1
+        Database.update('meta', values={'value': entry_count}, where={'name = ?': 'entry_count'})
     else:
         ### bestmatch, weibo -> entries (update)
-        Database.update('entries', values={'weibo_list': bestmatch[4]+';'+weibo.weibo_id}, \
+        Database.update('entries', values={'weibo_list': bestmatch[4]+';'+str(weibo.mid)}, \
                                    where={'entry_id = ?': bestmatch[0]})
-        inserted_entry_id = bestmatch[0]
 
     ### weibo -> weibo (insert)
-    Database.insert('weibo', values = [weibo.weibo_id,\
+    Database.insert('weibo', values = [weibo.mid,\
+                                       weibo.uid,\
                                        str(weibo.pub_time), \
                                        weibo.content, \
                                        "",\
                                        weibo.pub_time])
 
-    user_id = int(weibo.weibo_id.split('/')[0])
-    Database.insert_if_not_exist('user_lut', values=[user_id, weibo.sender_nickname])
+    Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
 
 
 def _insert_new_transmit(weibo):
@@ -121,32 +113,34 @@ def _insert_new_transmit(weibo):
     
     dt = None
     for dt in date_transmission:
-        if _same_day(datetime.datetime(dt[1]), datetime.datetime(weibo.weibo_time)):
+        if _same_day(datetime.datetime(dt[1]), weibo.pub_time):
             break
 
     if dt == None:
         # 插入新的 dt line 到 date_transmission table 中
-        pass
-        Database.insert('date_transmission', values=[])
-    
+        dt_count = Database.select('meta', columns=['value'], where={'name': 'dt_count'})[0][0]
+        date = datetime.datetime(weibo.pub_time.year, weibo.pub_time.month, weibo.pub_time.day)
+        Database.insert('date_transmission', values=[dt_count, str(date), str(weibo.mid)])
+        dt_count += 1
+        Database.update('meta', values={'value': dt_count}, where={'name': 'dt_count'})
+
     # 插入新的 transmitted 表项
-    pass
+    Database.insert('transmitted', values=[weibo.mid, weibo.content, str(weibo.pub_time)])
 
 
 ''' public methods here '''
 def create_fake_data():
     Database.connect()
-    user_id = '1686546714'
+    uid = 1686546714
     nickname = "环球网"
-    mid = 'Iz33N9J1h'
-    weibo_id = user_id + '/' + mid
-    pub_time = '2020-3-17 18:28:00'
+    mid = Meta.url_to_mid('Iz33N9J1h')
+    pub_time = datetime.datetime(2020, 3, 17, 18, 28, 0)
     content = "武汉病毒所辟谣石正丽“蚊虫或成第三宿主”言论：从未发布过。"
     nr = ["石正丽"]
     ns = []
     nt = ["武汉病毒所"]
     trans_source = None
-    weibo = Weibo.Weibo(weibo_id, nickname, pub_time, content, nr, ns, nt, trans_source)
+    weibo = Weibo.Weibo(mid, uid, nickname, pub_time, content, nr, ns, nt, trans_source)
     _insert_new_weibo(weibo, nr, ns, nt)
     Database.disconnect()
 
@@ -158,7 +152,8 @@ def update_db():
     rumorwords_update_time = Database.read_update_time()
 
     # 1: collect new rumors
-    rumorwords_weibo_list = WebUtils.rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)
+    # rumorwords_weibo_list = WebUtils.rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)
+    rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list()
     Database.write_update_time()
 
     ## 先考虑非转发的微博

@@ -48,7 +48,8 @@ def disconnect():
     _cursor = None
     _conn = None
 
-# remember to commit after operations
+# [!] remember to commit after operations
+
 # where part has only one argument placeholder
 # select_many: argument is a list
 def select_many(table, columns, where):
