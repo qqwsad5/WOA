@@ -33,6 +33,9 @@ class Weibo:
 
     def set_lists(self, lists):
         self._nr, self._ns, self._nt = lists
+
+    def set_trans_source(self, source_weibo):
+        self._trans_source = source_weibo
     
     @property
     def trans_source(self):

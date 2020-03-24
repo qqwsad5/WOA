@@ -10,8 +10,9 @@ CREDITS = [4, 1, 2]
 '''minimum weight for keyword sum'''
 WEIGHT_THRES = 6
 
-'''sleep time until next update of database'''
-SLEEP = 24*60*60
+'''sleep time until next search / update of database'''
+SLEEP_SEARCH = 60
+SLEEP_UPDATE = 24*60*60
 
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

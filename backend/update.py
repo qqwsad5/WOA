@@ -95,7 +95,7 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                                        str(weibo.pub_time), \
                                        weibo.content, \
                                        "",\
-                                       weibo.pub_time])
+                                       str(weibo.pub_time)])
 
     Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
 
@@ -151,14 +151,9 @@ def create_fake_data():
 
 def update_db():
     Database.connect()
-    # 0: mark last update time
-    #    update time: 上次按这些关键词搜索时最晚的一条
-    rumorwords_update_time = Database.read_update_time()
-
     # 1: collect new rumors
-    # rumorwords_weibo_list = WebUtils.rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)
-    rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list()
-    Database.write_update_time()
+    # rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list()
+    rumorwords_weibo_list = WebUtils.fetch_rumor_weibo_list()
 
     ## 先考虑非转发的微博
     for related_weibo in rumorwords_weibo_list:
@@ -197,7 +192,7 @@ def update_db():
     for weibo_sel in original_weibo_list:
         mid = weibo_sel[0]
         update_time = weibo_sel[1]
-        trans_list = WebUtils.get_trans_list(mid, update_time)
+        trans_list = WebUtils.get_trans_list(mid, new_trans_since=update_time)
         for transmission in trans_list:
             # 插入到 date_transmission, transmitted 中
             _insert_new_transmit(transmission)
