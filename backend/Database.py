@@ -145,8 +145,6 @@ def js_respond_search(keyword):
 
 def js_respond_show(entry_id):
     # dict: mid -> Weibo-dict
-    trans_dict = dict()
-
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
     cursor = conn.cursor()
 
