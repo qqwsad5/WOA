@@ -130,6 +130,7 @@ def _insert_new_transmit(weibo):
     # 插入新的 transmitted 表项
     Database.insert('transmitted', values=[weibo.mid, weibo.uid, weibo.content, str(weibo.pub_time)])
 
+    Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
 
 ''' public methods here '''
 def create_fake_data():
@@ -152,8 +153,8 @@ def create_fake_data():
 def update_db():
     Database.connect()
     # 1: collect new rumors
-    # rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list()
-    rumorwords_weibo_list = WebUtils.fetch_rumor_weibo_list()
+    rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list()
+    # rumorwords_weibo_list = WebUtils.fetch_rumor_weibo_list()
 
     ## 先考虑非转发的微博
     for related_weibo in rumorwords_weibo_list:
@@ -182,6 +183,7 @@ def update_db():
         _insert_new_transmit(weibo)
 
     Database.commit()
+
     # 2: search original weibo, transmit zone update
     today = datetime.datetime.now()
     after_time = today - datetime.timedelta(Meta.UPDATE_TRANSMIT_ZONE)
