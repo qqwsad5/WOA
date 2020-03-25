@@ -5,6 +5,7 @@ import bs4
 import Meta
 import datetime
 import copy
+import os
 
 JSON_DIRECTORY = os.path.join(\
     os.path.split(os.path.realpath(__file__))[0], "../database/")
@@ -97,10 +98,10 @@ def rumorwords_to_weibo_list(keywords, after_time):
     # filter
     # find transmit, append here
     # store
-
+    pass
 
 def test_rumorwords_to_weibo_list():
-    rumor_weibo_list
+    rumor_weibo_list = []
 
     content_list = []
     
@@ -125,7 +126,7 @@ def test_rumorwords_to_weibo_list():
     rumor_weibo_list.append(transmit)
 
     nr_list_list, ns_list_list, nt_list_list = parseContent(content_list)
-    for i in range(len(_rumor_weibo_list)):
+    for i in range(len(rumor_weibo_list)):
         rumor_weibo_list[i].set_lists((nr_list_list[i], ns_list_list[i], nt_list_list[i]))
 
     return rumor_weibo_list
