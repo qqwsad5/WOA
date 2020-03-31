@@ -226,6 +226,8 @@ def js_respond_show(entry_id, dump=False):
                 all_trans_id.extend(trans_id_list[0].split(';'))
 
             weibo_list[iweibo]['trans_list'] = [int(trans_id_str) for trans_id_str in all_trans_id]
+        else:
+            weibo_list[iweibo]['trans_list'] = []
 
         iweibo += 1
 
