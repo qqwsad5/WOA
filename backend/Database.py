@@ -144,16 +144,28 @@ def js_respond_search(keyword, dump=False):
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
     cursor = conn.cursor()
 
-    entry_id_selected = set()
+    entry_id_selected = dict()
     for i in range(3):
         cursor.execute("SELECT entry_list FROM {0}_lut WHERE {0} = ?".format(['nr', 'ns', 'nt'][i]), (keyword,))
         sel = cursor.fetchone()
         if sel != None:
             entry_list_sel = sel[0].split(';')
-            [entry_id_selected.add(str(entry_id)) for entry_id in entry_list_sel]
+            for entry_id in entry_list_sel:
+                if entry_id not in entry_id_selected:
+                    nr_sel = cursor.execute("SELECT nr_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
+                    ns_sel = cursor.execute("SELECT ns_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
+                    nt_sel = cursor.execute("SELECT nt_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
 
-    if dump: json.dump(list(entry_id_selected), open("./.js_respond_search.json", "w"))
-    else:    return json.dumps(list(entry_id_selected))
+                    if len(nr_sel) > 0: nr_sel = nr_sel.split(';')
+                    else: nr_sel = []
+                    if len(ns_sel) > 0: ns_sel = ns_sel.split(';')
+                    else: ns_sel = []
+                    if len(nt_sel) > 0: nt_sel = nt_sel.split(';')
+                    else: nt_sel = []
+                    entry_id_selected[entry_id] = (nr_sel, ns_sel, nt_sel)
+
+    if dump: json.dump(entry_id_selected, open("./.js_respond_search.json", "w"))
+    else:    return json.dumps(entry_id_selected)
 
 
 def js_respond_show(entry_id, dump=False):
@@ -168,7 +180,7 @@ def js_respond_show(entry_id, dump=False):
 
     # look up weibo uid, content, time
     for weibo_dict in weibo_list:
-        cursor.execute("SELECT uid, content, update_time, dt_id_list FROM weibo WHERE mid = ?", (weibo_dict['mid'],))
+        cursor.execute("SELECT uid, content, update_time, dt_id_list, weibo_time FROM weibo WHERE mid = ?", (weibo_dict['mid'],))
     weibo_sel = cursor.fetchall()
 
     uid_lookup = dict()
@@ -177,9 +189,11 @@ def js_respond_show(entry_id, dump=False):
         uid_lookup[uid] = ''
         content = weibo_sel[iweibo][1]
         update_time = weibo_sel[iweibo][2]
+        weibo_time = weibo_sel[iweibo][4]
         weibo_list[iweibo]['uid'] = uid
         weibo_list[iweibo]['content'] = content
         weibo_list[iweibo]['update_time'] = update_time
+        weibo_list[iweibo]['weibo_time'] = weibo_time
 
     # uid -> nickname
     uid_lookup_list = list(uid_lookup.keys())
