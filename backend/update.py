@@ -109,11 +109,12 @@ def _insert_new_transmit(weibo):
     dt = None
     if len(dt_id_list_sel[0][0]) > 0:
         dt_id_list = [int(x) for x in dt_id_list_sel[0][0].split(';')]
-        date_transmission = Dataset.select_many('date_transmission', columns=['dt_id', 'dt_date', 'trans_id'], \
+        date_transmission = Database.select_many('date_transmission', columns=['dt_id', 'dt_date', 'trans_id'], \
                                              where={'dt_id = ?': dt_id_list})
 
         for dt in date_transmission:
-            if _same_day(datetime.datetime(dt[1]), weibo.pub_time):
+            print(dt[1], weibo.pub_time)
+            if _same_day(datetime.datetime.strptime(dt[1], '%Y-%m-%d %H:%M:%S'), weibo.pub_time):
                 break
 
     if dt == None:
@@ -125,10 +126,10 @@ def _insert_new_transmit(weibo):
         dt_count += 1
         Database.update('meta', values={'value': dt_count}, where={'name = ?': 'dt_count'})
     else:
-        Database.update('date_transmission', values={'trans_id': dt[2]+";"+str(weibo.mid)}, where={"dt_id = ?", dt[0]})
+        Database.update('date_transmission', values={'trans_id': dt[2]+";"+str(weibo.mid)}, where={"dt_id = ?": dt[0]})
 
     # 插入新的 transmitted 表项
-    Database.insert('transmitted', values=[weibo.mid, weibo.uid, weibo.content, str(weibo.pub_time)])
+    Database.insert_if_not_exist('transmitted', values=[weibo.mid, weibo.uid, weibo.content, str(weibo.pub_time)])
 
     Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
 

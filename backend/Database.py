@@ -63,9 +63,10 @@ def select_many(table, columns, where):
     global _cursor
     conditional = list(where.keys())[0]
     arguments = [(arg,) for arg in where[conditional]] # list of single-arguments
-    _cursor.executemany("SELECT {} FROM {} WHERE {}"\
-                        .format(','.join(columns), table, conditional),\
-                        arguments)
+    for args in arguments:
+        _cursor.execute("SELECT {} FROM {} WHERE {}"\
+                            .format(','.join(columns), table, conditional),\
+                            args)
     results = _cursor.fetchall()
     return results
 
@@ -149,12 +150,12 @@ def js_respond_search(keyword, dump=False):
         cursor.execute("SELECT entry_list FROM {0}_lut WHERE {0} = ?".format(['nr', 'ns', 'nt'][i]), (keyword,))
         sel = cursor.fetchone()
         if sel != None:
-            entry_list_sel = sel[0].split(';')
+            entry_list_sel = [int(x) for x in sel[0].split(';')]
             for entry_id in entry_list_sel:
                 if entry_id not in entry_id_selected:
-                    nr_sel = cursor.execute("SELECT nr_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
-                    ns_sel = cursor.execute("SELECT ns_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
-                    nt_sel = cursor.execute("SELECT nt_list FROM entries WHERE entry_id = ?".format(entry_id)).fetchone()
+                    nr_sel = cursor.execute("SELECT nr_list FROM entries WHERE entry_id = ?", (entry_id,)).fetchone()[0]
+                    ns_sel = cursor.execute("SELECT ns_list FROM entries WHERE entry_id = ?", (entry_id,)).fetchone()[0]
+                    nt_sel = cursor.execute("SELECT nt_list FROM entries WHERE entry_id = ?", (entry_id,)).fetchone()[0]
 
                     if len(nr_sel) > 0: nr_sel = nr_sel.split(';')
                     else: nr_sel = []
@@ -162,6 +163,7 @@ def js_respond_search(keyword, dump=False):
                     else: ns_sel = []
                     if len(nt_sel) > 0: nt_sel = nt_sel.split(';')
                     else: nt_sel = []
+                    print(type(entry_id))
                     entry_id_selected[entry_id] = (nr_sel, ns_sel, nt_sel)
 
     if dump: json.dump(entry_id_selected, open("./.js_respond_search.json", "w"))
