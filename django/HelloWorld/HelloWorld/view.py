@@ -30,6 +30,7 @@ def search(request):
     keyword = ''
     if request.method=='GET':
         keyword = request.GET.get('keyword',default='')
+        print(keyword)
     resp = js_respond_search(keyword)
     response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
                             status='200',
@@ -59,6 +60,6 @@ def transmit(request):
                             charset='utf-8')
     return response
 
-# print(js_respond_search("中国驻美国大使馆"))
-# print(js_respond_show("4483532472318011"))
-# print(js_respond_transmit("4483532472318011"))
+# print(js_respond_search("崔天凯"))
+# print(js_respond_show("1"))
+# print(js_respond_transmit("4485778127905740"))
