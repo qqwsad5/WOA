@@ -30,7 +30,6 @@ def search(request):
     keyword = ''
     if request.method=='GET':
         keyword = request.GET.get('keyword',default='')
-        print(keyword)
     resp = js_respond_search(keyword)
     response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
                             status='200',
