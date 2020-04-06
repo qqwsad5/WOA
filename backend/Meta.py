@@ -5,17 +5,20 @@ KEYWORDS = ['谣言', '辟谣', '网传']
 UPDATE_TRANSMIT_ZONE = 30 # days
 
 '''weights for NR, NS, NT'''
-CREDITS = [4, 1, 2]
+CREDITS = [2, 1, 2]
 
 '''minimum weight for keyword sum'''
-WEIGHT_THRES = 6
+WEIGHT_THRES = 5
 
 '''sleep time until next search / update of database'''
-SLEEP_SEARCH = 60
+SLEEP_SEARCH = 2#60
 SLEEP_UPDATE = 24*60*60
 
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+URL_TEMPLATE = "https://m.weibo.cn/api/container/getIndex?type=wb&queryVal={}&containerid=100103type=2%26q%3D{}&page={}"
+SEARCH_PAGES = 2
 
 
 def _base62_encode(num, alphabet=ALPHABET):
@@ -82,7 +85,8 @@ recognizer = None
 
 def load_hanlp_recognizer():
     global recognizer
-    recognizer = hanlp.load(hanlp.pretrained.ner.MSRA_NER_BERT_BASE_ZH)
+    if recognizer == None:
+        recognizer = hanlp.load(hanlp.pretrained.ner.MSRA_NER_BERT_BASE_ZH)
 
 def unload_hanlp_recognizer():
     global recognizer

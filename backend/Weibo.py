@@ -31,7 +31,7 @@ class Weibo:
     def content(self):
         return self._content
 
-    def set_lists(self, lists):
+    def set_lists(self, lists): # only use for test_rumorwords_to_weibo_list()
         self._nr, self._ns, self._nt = lists
 
     def set_trans_source(self, source_weibo):
