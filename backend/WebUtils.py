@@ -399,8 +399,8 @@ def get_trans_list(mid, new_trans_since):
 
 
 if __name__ == '__main__':
-    phone_number = '13716393192'
-    password = 'dadaliao980308'
+    phone_number = ''
+    password = ''
 
     Database.connect()
     Meta.load_hanlp_recognizer()
