@@ -21,8 +21,10 @@ def _same_day(date, date_time):
 def _format_as_datetime(datetime_obj):
     return str(datetime_obj)[:19]
 
+
 def _insert_new_weibo(weibo, nr, ns, nt):
     Database.connect()
+    print("inserting weibo {}".format(weibo.mid))
 
     ## 涉及关键词的条目
     nx = ['nr', 'ns', 'nt']
@@ -71,7 +73,7 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                                             ';'.join(ns), \
                                             ';'.join(nt), \
                                             str(weibo.mid)])
-        
+
         ### ns, nt, nr, entry_count -> nx_lut(update)
         nx_name = ['nr', 'ns', 'nt']
         for i in range(3):
@@ -80,9 +82,9 @@ def _insert_new_weibo(weibo, nr, ns, nt):
                 if len(nx_line) == 0:
                     Database.insert(nx_name[i]+'_lut', values=[keyword, str(entry_count)])
                 else:
-                    old_entry_list = nx_line[0][0]
-                    Database.update(nx_name[i]+'_lut', values={'entry_list': old_entry_list+';'+str(entry_count)}, \
-                                                  where={nx_name[i] + "= ?": keyword})
+                    if len(nx_line[0][0]) == 0 or str(entry_count) not in nx_line[0][0].split(';'):
+                        Database.update(nx_name[i]+'_lut', values={'entry_list': nx_line[0][0]+';'+str(entry_count)}, \
+                                                where={nx_name[i] + "= ?": keyword})
 
         entry_count += 1
         Database.update('meta', values={'value': entry_count}, where={'name = ?': 'entry_count'})
@@ -92,17 +94,24 @@ def _insert_new_weibo(weibo, nr, ns, nt):
             Database.update('entries', values={'weibo_list': bestmatch[3]+';'+str(weibo.mid)}, \
                                        where={'entry_id = ?': bestmatch[0]})
 
-            Database.insert('weibo', values = [weibo.mid,\
-                                               weibo.uid,\
-                                               str(weibo.pub_time), \
-                                               weibo.content, \
-                                               "",\
-                                               str(weibo.pub_time)])
+    weibo_sel = Database.select('weibo', ['mid'], where={'mid = ?': weibo.mid})
+    if len(weibo_sel) == 0:
+        Database.insert('weibo', values = [weibo.mid,\
+                                           weibo.uid,\
+                                           str(weibo.pub_time), \
+                                           weibo.content, \
+                                           "",\
+                                           str(weibo.pub_time)])
 
-            Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
+    Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
+    Database.commit()
+
+    print("insert weibo {} finish".format(weibo.mid))
 
 
 def _insert_new_transmit(weibo):
+    print("inserting repost {}".format(weibo.mid))
+
     repost_sel = Database.select('transmitted', ['mid'], {"mid = ?": weibo.mid})
     if len(repost_sel) > 0: return
     ## 经过前面的插入/跳过操作，原 weibo 已经在 table: weibo 中了
@@ -112,11 +121,16 @@ def _insert_new_transmit(weibo):
         source_mid = weibo.trans_source
 
     dt_id_list_sel = Database.select('weibo', columns=['dt_id_list'], where={'mid = ?': source_mid})
-    assert(len(dt_id_list_sel) > 0)
+    Database.update('weibo', values={'update_time': _format_as_datetime(datetime.datetime.now())},\
+                             where ={"mid = ?": source_mid})
+    try:
+        assert(len(dt_id_list_sel) > 0)
+    except:
+        print("{} not found".format(source_mid))
 
     ## 查对dt_id_list
     dt = None
-    if len(dt_id_list_sel[0][0]) > 0:
+    if len(dt_id_list_sel) > 0 and len(dt_id_list_sel[0][0]) > 0:
         dt_id_list = [int(x) for x in dt_id_list_sel[0][0].split(';')]
         date_transmission = Database.select_many('date_transmission', columns=['dt_id', 'dt_date', 'trans_id'], \
                                              where={'dt_id = ?': dt_id_list})
@@ -130,8 +144,11 @@ def _insert_new_transmit(weibo):
         # 插入新的 dt line 到 date_transmission table 中
         dt_count = Database.select('meta', columns=['value'], where={'name = ?': 'dt_count'})[0][0]
         Database.update('weibo', values={'dt_id_list': str(dt_count)}, where={'mid = ?': source_mid})
-        date = datetime.datetime(weibo.pub_time.year, weibo.pub_time.month, weibo.pub_time.day)
-        Database.insert('date_transmission', values=[dt_count, str(date), str(weibo.mid)])
+        try:
+            date = str(datetime.datetime(weibo.pub_time.year, weibo.pub_time.month, weibo.pub_time.day))
+        except:
+            date = weibo.pub_time[:10] + " 00:00:00"
+        Database.insert('date_transmission', values=[dt_count, date, str(weibo.mid)])
         dt_count += 1
         Database.update('meta', values={'value': dt_count}, where={'name = ?': 'dt_count'})
     else:
@@ -141,6 +158,7 @@ def _insert_new_transmit(weibo):
     Database.insert_if_not_exist('transmitted', values=[weibo.mid, weibo.uid, weibo.content, str(weibo.pub_time)])
 
     Database.insert_if_not_exist('user_lut', values=[weibo.uid, weibo.sender_nickname])
+
 
 ''' public methods here '''
 def create_fake_data():
@@ -163,16 +181,25 @@ def create_fake_data():
 def update_db():
     Database.connect()
     # 1: collect new rumors
-    rumorwords_weibo_list = WebUtils.test_rumorwords_to_weibo_list() # for test
-    # rumorwords_weibo_list = WebUtils.fetch_rumor_weibo_list()
+    # rumorwords_weibo_dict = WebUtils.test_rumorwords_to_weibo_list() # for test
+    rumorwords_weibo_dict = WebUtils.fetch_rumor_weibo_list()
+    print("{} new weibo collected at {}".format(len(rumorwords_weibo_dict), datetime.datetime.now()))
+
+    for mid in rumorwords_weibo_dict:
+        try:
+            print(mid, rumorwords_weibo_dict[mid].trans_source.mid)
+        except:
+            print(mid, rumorwords_weibo_dict[mid].trans_source)
 
     ## 先考虑非转发的微博
-    for related_weibo in rumorwords_weibo_list:
+    for related_weibo in rumorwords_weibo_dict.values():
 
-        if related_weibo.trans_source != None:
+        if related_weibo.trans_source != None and related_weibo.trans_source != -1:
             ## 通过被转发关系找到的原微博
             weibo = related_weibo.trans_source
             ## 关键词取原微博&转发微博的并集
+            if type(weibo) == int:
+                weibo = rumorwords_weibo_dict[weibo]
             nr, ns, nt = weibo.named_entities
             nr_trans, ns_trans, nt_trans = related_weibo.named_entities
             [nr.append(nr_trans_item) for nr_trans_item in nr_trans if nr_trans_item not in nr]
@@ -186,9 +213,11 @@ def update_db():
 
         _insert_new_weibo(weibo, nr, ns, nt)
 
+    Database.commit()
+
     ## 跳过录入过的原微博
-    for weibo in rumorwords_weibo_list:
-        if weibo.trans_source == None: continue
+    for weibo in rumorwords_weibo_dict.values():
+        if weibo.trans_source == None or weibo.trans_source == -1: continue
 
         _insert_new_transmit(weibo)
 

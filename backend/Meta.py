@@ -11,7 +11,7 @@ CREDITS = [2, 1, 2]
 WEIGHT_THRES = 5
 
 '''sleep time until next search / update of database'''
-SLEEP_SEARCH = 2#60
+SLEEP_SEARCH = 10
 SLEEP_UPDATE = 24*60*60
 
 

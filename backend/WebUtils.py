@@ -77,13 +77,11 @@ def parseContent(content_list):
 
 
 def _solid_news(nr, ns, nt):
-    print(nr, ns, nt, "\n")
     ## 微博的内容量 & 排除无具体内容的微博
     total_weight = Meta.CREDITS[0] * len(nr) + \
                    Meta.CREDITS[1] * len(ns) + \
                    Meta.CREDITS[2] * len(nt)
     if total_weight < Meta.WEIGHT_THRES: return False
-    print("solid")
     return True
 
 
@@ -306,11 +304,17 @@ def rumorwords_to_weibo_list(keywords, after_time):
 
     json.dump([dump_weibo_dict[mid] for mid in dump_weibo_dict.keys()], \
               open(os.path.join(JSON_DIRECTORY, JSON_NAME), "a+") )
+    wh = open(os.path.join(JSON_DIRECTORY, JSON_NAME), "a+")
+    wh.write(',')
+    wh.close()
 
 
 def fetch_rumor_weibo_list():
     # fetch raw
-    rumor_weibo_list = json.load(open(os.path.join(JSON_DIRECTORY, JSON_NAME))) # json list of attr dict
+    jread = json.loads("[" + open(os.path.join(JSON_DIRECTORY, JSON_NAME)).read()[:-1] + "]") # json list of attr dict
+    rumor_weibo_list = jread[0]
+    for i in range(1, len(jread)):
+        rumor_weibo_list.extend(jread[i])
 
     # create Weibo objs, trans_source is yet an mid
     rumor_weibo_dict = dict()
@@ -327,10 +331,12 @@ def fetch_rumor_weibo_list():
         rumor_weibo_dict[mid].set_trans_source(source_weibo)
 
     # clear json storage
-    json.dump([], open(os.path.join(JSON_DIRECTORY, JSON_NAME), 'w'))
+    jh = open(os.path.join(JSON_DIRECTORY, JSON_NAME), 'w')
+    jh.write("")
+    jh.close()
 
     # return
-    return rumor_weibo_list
+    return rumor_weibo_dict
 
 
 def test_rumorwords_to_weibo_list():
@@ -385,7 +391,6 @@ def get_trans_list(mid, new_trans_since):
             transmit['pub_time'], transmit['content'], \
             nr_list[iweibo], ns_list[iweibo], nt_list[iweibo],\
             transmit['trans_source_mid']))
-        print(transmit['pub_time'])
         iweibo += 1
 
     # 过滤掉 new_trans_since 之前的转发
