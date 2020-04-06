@@ -134,12 +134,11 @@ def _open_weibo(mid):
     soup = bs4.BeautifulSoup(html.text, "html.parser")
     try:
         main_script = soup.findAll('script')[1]
+        render_data = re.findall("var \$render_data =(.+?);\n", main_script.text, re.S)[0][:-9]
+        json_data = json.loads(render_data)
     except:
         print("mid: {} is invalid???".format(mid))
         return
-
-    render_data = re.findall("var \$render_data =(.+?);\n", main_script.text, re.S)[0][:-9]
-    json_data = json.loads(render_data)
 
     weibo_dict['mid'] = mid
     weibo_dict['uid'] = json_data[0]['status']['user']['id']
