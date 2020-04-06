@@ -399,23 +399,3 @@ def get_trans_list(mid, new_trans_since):
     # 过滤掉 new_trans_since 之前的转发
     return [transmission for transmission in trans_Weibo_list \
             if transmission.pub_time >= _fromisoformat(new_trans_since)]
-
-
-if __name__ == '__main__':
-    phone_number = ''
-    password = ''
-
-    Database.connect()
-    Meta.load_hanlp_recognizer()
-    while True:
-        rumorwords_update_time = Database.read_update_time()
-
-        rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)
-
-        Database.write_update_time()
-        Database.commit()
-
-        time.sleep(Meta.SLEEP_SEARCH)
-
-    Meta.unload_hanlp_recognizer()
-    Database.disconnect()

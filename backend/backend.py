@@ -4,19 +4,33 @@ import time
 import Meta
 import os
 import time
+import WebUtils
+import Database
+import time
 
 if __name__ == '__main__':
-    # os.system("python3 {}".format(\
-    #     os.path.join(os.path.split(os.path.realpath(__file__))[0], "WebUtils.py")))
-
+    phone_number = '13716393192'
+    password = 'dadaliao980308'
+    
+    Database.connect()
+    print("hanlp model load success")
     Meta.load_hanlp_recognizer()
-    print("hanlp ZH model load success")
 
+    iters_before_find_repost = Meta.SLEEP_UPDATE // Meta.SLEEP_SEARCH
     while True:
-        update.update_db()
-        time.sleep(Meta.SLEEP_UPDATE)
+        rumorwords_update_time = Database.read_update_time()
 
-    # update.create_fake_data()
-    # update.update_db()
+        WebUtils.rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)
+
+        Database.write_update_time()
+        Database.commit()
+
+        time.sleep(Meta.SLEEP_SEARCH)
+        
+        iters_before_find_repost -= 1
+        if iters_before_find_repost == 0:
+            update.update_db()
+            iters_before_find_repost = Meta.SLEEP_UPDATE // Meta.SLEEP_SEARCH
 
     Meta.unload_hanlp_recognizer()
+    Database.disconnect()
