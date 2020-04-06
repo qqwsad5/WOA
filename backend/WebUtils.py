@@ -261,7 +261,7 @@ def rumorwords_to_weibo_list(keywords, after_time):
             if weibo_raw['trans_source_mid'] not in search_pool:
                 # find raw weibo, open, add to weibo_pool
                 original_weibo_raw = _open_weibo(weibo_raw['trans_source_mid'])
-                weibo_pool[original_weibo_raw['mid']] = original_weibo_raw
+                weibo_pool[weibo_raw['trans_source_mid']] = original_weibo_raw
             weibo_pool[weibo_raw['mid']] = weibo_raw
 
     # analyze entities
@@ -279,21 +279,25 @@ def rumorwords_to_weibo_list(keywords, after_time):
     for mid in weibo_pool.keys():
         if weibo_pool[mid]['trans_source_mid'] == -1: continue
         else:
-            original = weibo_pool[weibo_pool[mid]['trans_source_mid']]
-            transmit = weibo_pool[mid]
-            comb_nr_list = original['nr_list']
-            comb_ns_list = original['ns_list']
-            comb_nt_list = original['nt_list']
-            comb_nr_list.extend(transmit['nr_list'])
-            comb_ns_list.extend(transmit['ns_list'])
-            comb_nt_list.extend(transmit['nt_list'])
-            if _solid_news(comb_nr_list, comb_ns_list, comb_nt_list):
-                dump_weibo_dict[mid] = transmit
-                dump_weibo_dict[mid]['pub_time'] = str(dump_weibo_dict[mid]['pub_time'])
-                if original['mid'] not in dump_weibo_dict:
-                    dump_weibo_dict[original['mid']] = original
-                    dump_weibo_dict[original['mid']]['pub_time'] \
-                     = str(dump_weibo_dict[original['mid']]['pub_time'])
+            try:
+                original = weibo_pool[weibo_pool[mid]['trans_source_mid']]
+                transmit = weibo_pool[mid]
+                comb_nr_list = original['nr_list']
+                comb_ns_list = original['ns_list']
+                comb_nt_list = original['nt_list']
+                comb_nr_list.extend(transmit['nr_list'])
+                comb_ns_list.extend(transmit['ns_list'])
+                comb_nt_list.extend(transmit['nt_list'])
+                if _solid_news(comb_nr_list, comb_ns_list, comb_nt_list):
+                    dump_weibo_dict[mid] = transmit
+                    dump_weibo_dict[mid]['pub_time'] = str(dump_weibo_dict[mid]['pub_time'])
+                    if original['mid'] not in dump_weibo_dict:
+                        dump_weibo_dict[original['mid']] = original
+                        dump_weibo_dict[original['mid']]['pub_time'] \
+                         = str(dump_weibo_dict[original['mid']]['pub_time'])
+            except: # 使用try是因为有 bug ：找不到 original，不知为何
+                print("{} not collected ???".format(weibo_pool[mid]['trans_source_mid']))
+                continue
 
     # 再从未被遍历的原微博视角看，如果 原微博 分量足够，则两者均加入
     for mid in weibo_pool.keys():
