@@ -185,46 +185,51 @@ def update_db():
     Database.connect()
     # 1: collect new rumors
     # rumorwords_weibo_dict = WebUtils.test_rumorwords_to_weibo_list() # for test
-    rumorwords_weibo_dict = WebUtils.fetch_rumor_weibo_list()
-    print("{} new weibo collected at {}".format(len(rumorwords_weibo_dict), datetime.datetime.now()))
+    for file in os.listdir(WebUtils.JSON_DIRECTORY):
+        if '.json' not in file or 'weibo_list_' not in file: 
+            continue
 
-    for mid in rumorwords_weibo_dict:
-        try:
-            print(mid, rumorwords_weibo_dict[mid].trans_source.mid)
-        except:
-            print(mid, rumorwords_weibo_dict[mid].trans_source)
+        rumorwords_weibo_dict = WebUtils.fetch_rumor_weibo_list(\
+            os.path.join(WebUtils.JSON_DIRECTORY, file))
+        print("{} new weibo collected at {}".format(len(rumorwords_weibo_dict), datetime.datetime.now()))
 
-    ## 先考虑非转发的微博
-    for related_weibo in rumorwords_weibo_dict.values():
+        for mid in rumorwords_weibo_dict:
+            try:
+                print(mid, rumorwords_weibo_dict[mid].trans_source.mid)
+            except:
+                print(mid, rumorwords_weibo_dict[mid].trans_source)
 
-        if related_weibo.trans_source != None and related_weibo.trans_source != -1:
-            ## 通过被转发关系找到的原微博
-            weibo = related_weibo.trans_source
-            ## 关键词取原微博&转发微博的并集
-            if type(weibo) == int:
-                weibo = rumorwords_weibo_dict[weibo]
-            nr, ns, nt = weibo.named_entities
-            nr_trans, ns_trans, nt_trans = related_weibo.named_entities
-            [nr.append(nr_trans_item) for nr_trans_item in nr_trans if nr_trans_item not in nr]
-            [ns.append(ns_trans_item) for ns_trans_item in ns_trans if ns_trans_item not in ns]
-            [nt.append(nt_trans_item) for nt_trans_item in nt_trans if nt_trans_item not in nt]
-        else:
-            ## 通过关键词搜索方式找到的原微博
-            weibo = related_weibo
-            ## 关键词自然是找原微博的 nx
-            nr, ns, nt = weibo.named_entities
+        ## 先考虑非转发的微博
+        for related_weibo in rumorwords_weibo_dict.values():
 
-        _insert_new_weibo(weibo, nr, ns, nt)
+            if related_weibo.trans_source != None and related_weibo.trans_source != -1:
+                ## 通过被转发关系找到的原微博
+                weibo = related_weibo.trans_source
+                ## 关键词取原微博&转发微博的并集
+                if type(weibo) == int:
+                    weibo = rumorwords_weibo_dict[weibo]
+                nr, ns, nt = weibo.named_entities
+                nr_trans, ns_trans, nt_trans = related_weibo.named_entities
+                [nr.append(nr_trans_item) for nr_trans_item in nr_trans if nr_trans_item not in nr]
+                [ns.append(ns_trans_item) for ns_trans_item in ns_trans if ns_trans_item not in ns]
+                [nt.append(nt_trans_item) for nt_trans_item in nt_trans if nt_trans_item not in nt]
+            else:
+                ## 通过关键词搜索方式找到的原微博
+                weibo = related_weibo
+                ## 关键词自然是找原微博的 nx
+                nr, ns, nt = weibo.named_entities
 
-    Database.commit()
+            _insert_new_weibo(weibo, nr, ns, nt)
 
-    ## 跳过录入过的原微博
-    for weibo in rumorwords_weibo_dict.values():
-        if weibo.trans_source == None or weibo.trans_source == -1: continue
+        Database.commit()
 
-        _insert_new_transmit(weibo)
+        ## 跳过录入过的原微博
+        for weibo in rumorwords_weibo_dict.values():
+            if weibo.trans_source == None or weibo.trans_source == -1: continue
 
-    Database.commit()
+            _insert_new_transmit(weibo)
+
+        Database.commit()
 
     # 2: search original weibo, transmit zone update
     today = datetime.datetime.now()

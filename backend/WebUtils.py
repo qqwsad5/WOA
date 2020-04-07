@@ -15,7 +15,7 @@ import time
 
 JSON_DIRECTORY = os.path.join(\
     os.path.split(os.path.realpath(__file__))[0], "../database/")
-JSON_NAME = "weibo_list.json"
+JSON_NAME = "weibo_list_{}-{}-{}-{}.json"
 
 
 global phone_number
@@ -305,19 +305,14 @@ def rumorwords_to_weibo_list(keywords, after_time):
                 dump_weibo_dict[mid] = weibo_pool[mid]
                 dump_weibo_dict[mid]['pub_time'] = str(dump_weibo_dict[mid]['pub_time'])
 
-    json.dump([dump_weibo_dict[mid] for mid in dump_weibo_dict.keys()], \
-              open(os.path.join(JSON_DIRECTORY, JSON_NAME), "a+") )
-    wh = open(os.path.join(JSON_DIRECTORY, JSON_NAME), "a+")
-    wh.write(',')
-    wh.close()
+    now = datetime.datetime.now()
+    json.dump(dump_weibo_dict.values(), \
+              open(os.path.join(JSON_DIRECTORY, JSON_NAME.format(now.day, now.hour, now.minute, now.second)), "w") )
 
 
-def fetch_rumor_weibo_list():
+def fetch_rumor_weibo_list(json_name):
     # fetch raw
-    jread = json.loads("[" + open(os.path.join(JSON_DIRECTORY, JSON_NAME)).read()[:-1] + "]") # json list of attr dict
-    rumor_weibo_list = jread[0]
-    for i in range(1, len(jread)):
-        rumor_weibo_list.extend(jread[i])
+    rumor_weibo_list = json.load( open(os.path.join(JSON_DIRECTORY, json_name)) )
 
     # create Weibo objs, trans_source is yet an mid
     rumor_weibo_dict = dict()
@@ -334,9 +329,7 @@ def fetch_rumor_weibo_list():
         rumor_weibo_dict[mid].set_trans_source(source_weibo)
 
     # clear json storage
-    jh = open(os.path.join(JSON_DIRECTORY, JSON_NAME), 'w')
-    jh.write("")
-    jh.close()
+    os.system("rm {}".format(os.path.join(JSON_DIRECTORY, json_name)))
 
     # return
     return rumor_weibo_dict
