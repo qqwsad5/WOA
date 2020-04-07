@@ -272,6 +272,7 @@ def rumorwords_to_weibo_list(keywords, after_time):
     dump_weibo_dict = {}
     # 先从转发视角看，如果 原微博+转发 分量足够，则两者均加入
     for mid in weibo_pool.keys():
+        assert(type(weibo_pool[mid]['trans_source_mid']) == int)
         if weibo_pool[mid]['trans_source_mid'] == -1: continue
         else:
             try:
