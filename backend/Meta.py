@@ -12,7 +12,7 @@ WEIGHT_THRES = 5
 
 '''sleep time until next search / update of database'''
 SLEEP_SEARCH = 10
-SLEEP_UPDATE = 24*60*60
+SLEEP_UPDATE = 30*60
 
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

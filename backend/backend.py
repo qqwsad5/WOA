@@ -9,8 +9,8 @@ import Database
 import time
 
 if __name__ == '__main__':
-    phone_number = ''
-    password = ''
+    phone_number = '13716393192'
+    password = 'dadaliao980308'
     
     Database.connect()
     print("hanlp model load success")
