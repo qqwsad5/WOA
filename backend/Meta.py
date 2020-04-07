@@ -69,15 +69,11 @@ def url_to_mid(url):
     result.reverse()
     return int(''.join(result))
 
-def timestring2datetime(timestring):
-    if ' ' in timestring:
-        halves = timestring.split(' ')
-        ymd = [int(number) for number in halves[0].split('-')]
-        hms = [int(number) for number in halves[1].split(':')]
-        return datetime(*ymd, *hms)
-    else:
-        ymd = [int(number) for number in timestring.split('-')]
-        return datetime(*ymd)
+
+def fromisoformat(string):
+    return datetime.datetime(int(string[:4]), int(string[5:7]), int(string[8:10]), \
+                             int(string[11:13]), int(string[14:16]), int(string[17:19]))
+
 
 import hanlp
 global recognizer

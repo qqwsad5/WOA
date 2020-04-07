@@ -12,6 +12,8 @@ def _overlap(list1, list2):
     return count
 
 def _same_day(date, date_time):
+    if type(date_time) == str:
+        date_time = Meta.fromisoformat(date)
     if date.year  == date_time.year and \
        date.month == date_time.month and \
        date.day  == date_time.day:
@@ -137,7 +139,8 @@ def _insert_new_transmit(weibo):
 
         for dt in date_transmission:
             print(dt[1], weibo.pub_time)
-            if _same_day(datetime.datetime.strptime(dt[1], '%Y-%m-%d %H:%M:%S'), weibo.pub_time):
+            if _same_day(datetime.datetime.strptime(dt[1], '%Y-%m-%d %H:%M:%S'), \
+                         weibo.pub_time):
                 break
 
     if dt == None:
