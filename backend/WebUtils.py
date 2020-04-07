@@ -306,7 +306,7 @@ def rumorwords_to_weibo_list(keywords, after_time):
                 dump_weibo_dict[mid]['pub_time'] = str(dump_weibo_dict[mid]['pub_time'])
 
     now = datetime.datetime.now()
-    json.dump(dump_weibo_dict.values(), \
+    json.dump(list(dump_weibo_dict.values()), \
               open(os.path.join(JSON_DIRECTORY, JSON_NAME.format(now.day, now.hour, now.minute, now.second)), "w") )
 
 
