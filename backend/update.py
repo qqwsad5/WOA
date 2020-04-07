@@ -5,7 +5,7 @@ import Database
 import numpy as np
 import datetime
 import WebUtils
-
+import os
 
 def _overlap(list1, list2):
     count = np.sum([1 for kw in list2 if kw in list1])
@@ -189,9 +189,13 @@ def update_db():
         if '.json' not in file or 'weibo_list_' not in file: 
             continue
 
-        rumorwords_weibo_dict = WebUtils.fetch_rumor_weibo_list(\
-            os.path.join(WebUtils.JSON_DIRECTORY, file))
-        print("{} new weibo collected at {}".format(len(rumorwords_weibo_dict), datetime.datetime.now()))
+        try:
+            rumorwords_weibo_dict = WebUtils.fetch_rumor_weibo_list(\
+                os.path.join(WebUtils.JSON_DIRECTORY, file))
+            print("{} new weibo collected at {}".format(len(rumorwords_weibo_dict), datetime.datetime.now()))
+        except:
+            print("invalid json file: {}".format(file))
+            continue
 
         for mid in rumorwords_weibo_dict:
             try:
