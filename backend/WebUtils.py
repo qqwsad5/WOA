@@ -190,7 +190,7 @@ def _get_trans_mid_list(mid):
 
     ans = []
     matcher = re.compile("^/attitude/([0-9a-zA-Z]+)")
-    for page in range(20):
+    for page in range(Meta.NEW_TRANSMIT_PAGES):
         try:
             print("\tpage {} for mid {}".format(page, mid))
             html = session.get(url=weibo_cn_url+"?page={}".format(page))

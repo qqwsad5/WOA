@@ -20,6 +20,8 @@ ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 URL_TEMPLATE = "https://m.weibo.cn/api/container/getIndex?type=wb&queryVal={}&containerid=100103type=2%26q%3D{}&page={}"
 SEARCH_PAGES = 2
 
+NEW_TRANSMIT_PAGES = 5
+
 
 def _base62_encode(num, alphabet=ALPHABET):
     if (num == 0): return alphabet[0]
