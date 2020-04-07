@@ -29,11 +29,6 @@ def release_session():
     global session
     session = None
 
-def _fromisoformat(string):
-    return datetime.datetime(int(string[:4]), int(string[5:7]), int(string[8:10]), \
-                             int(string[11:13]), int(string[14:16]), int(string[17:19]))
-
-
 '''parsing weibo'''
 def parseContent(content_list):
     input_list = []
@@ -124,7 +119,7 @@ def _weibotime_to_datetime(weibo_time):
     time = format_string.group(3)
     year = format_string.group(4)
     timestring = "{}-{}-{} {}".format(year, month, date, time)
-    return _fromisoformat(timestring)
+    return Meta.fromisoformat(timestring)
 
 
 '''web access interface'''
@@ -402,4 +397,4 @@ def get_trans_list(mid, new_trans_since):
 
     # 过滤掉 new_trans_since 之前的转发
     return [transmission for transmission in trans_Weibo_list \
-            if transmission.pub_time >= _fromisoformat(new_trans_since)]
+            if transmission.pub_time >= Meta.fromisoformat(new_trans_since)]
