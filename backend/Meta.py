@@ -5,7 +5,7 @@ KEYWORDS = ['谣言', '辟谣', '网传']
 UPDATE_TRANSMIT_ZONE = 30 # days
 
 '''weights for NR, NS, NT'''
-CREDITS = [2, 1, 2]
+CREDITS = [2, 1, 3]
 
 '''minimum weight for keyword sum'''
 WEIGHT_THRES = 5

@@ -201,7 +201,6 @@ def update_db():
 
         ## 先考虑非转发的微博
         for related_weibo in rumorwords_weibo_dict.values():
-
             if related_weibo.trans_source != None and related_weibo.trans_source != -1:
                 ## 通过被转发关系找到的原微博
                 weibo = related_weibo.trans_source

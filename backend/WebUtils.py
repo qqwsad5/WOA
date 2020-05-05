@@ -152,6 +152,7 @@ def _open_weibo(mid):
     return weibo_dict
 
 
+""" search mids """
 # https://blog.csdn.net/xiaopang123__/article/details/79001426
 def _get_trans_mid_list(mid):
     weibo_cn_url = "https://weibo.cn/repost/{}".format(Meta.mid_to_url(mid))
@@ -233,32 +234,36 @@ def _search_weibo_with_keywords(keywords):
 
             time.sleep(Meta.SLEEP_SEARCH)
 
-    return list(mids)
+    return mids
 
 
-'''综合'''
-def rumorwords_to_weibo_list(keywords, after_time):
-    # search
-    search_pool = _search_weibo_with_keywords(keywords) # a list of mid
+def C_(N, k):
+    pass
 
-    # open each
-    # + filter
-    weibo_pool = dict()
-    for search_mid in search_pool:
-        if search_mid in weibo_pool: continue
+def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
+    # input: N x nr_list, N x ns_list, N x nt_list
+    solid_tuples = []
+    mids = set()
+    for i in range(len(nr_list_list)):
+        if not _solid_news(nr_list_list[i], ns_list_list[i], nt_list_list[i]): continue
 
-        weibo_raw = _open_weibo(search_mid)
-        if weibo_raw == None: continue
-        if weibo_raw['pub_time'] <= after_time: continue
-        if weibo_raw['trans_source_mid'] == -1: # raw weibo: add
-            weibo_pool[weibo_raw['mid']] = weibo_raw
-        else:   # transmit weibo: 
-            if weibo_raw['trans_source_mid'] not in search_pool:
-                # find raw weibo, open, add to weibo_pool
-                original_weibo_raw = _open_weibo(weibo_raw['trans_source_mid'])
-                weibo_pool[weibo_raw['trans_source_mid']] = original_weibo_raw
-            weibo_pool[weibo_raw['mid']] = weibo_raw
+        nx_list = np.concatenate([nr_list_list[i], ns_list_list[i], nt_list_list[i]], axis=0)
+        if len(nx_list) <= 4:
+            keywords = '%20'.join(nx_list)
+            mids.union(_search_weibo_with_keywords(keywords))
+        else:
+            all_5_combinations = C_(len(nx_list), 4)
+            for combination in all_5_combinations:
+                keyword = '%20'.join(nx_list[combination])
+                mids.union(_search_weibo_with_keywords(keywords))
 
+    return mids
+
+""" end: search mids """
+
+
+""" parse + filter """
+def parsecontent_filtersolid(weibo_pool):
     # analyze entities
     content_list = [weibo_pool[mid]['content'] for mid in weibo_pool.keys()]
     nr_list_list, ns_list_list, nt_list_list = parseContent(content_list)
@@ -305,9 +310,64 @@ def rumorwords_to_weibo_list(keywords, after_time):
                 dump_weibo_dict[mid] = weibo_pool[mid]
                 dump_weibo_dict[mid]['pub_time'] = str(dump_weibo_dict[mid]['pub_time'])
 
+    return dump_weibo_dict
+
+""" end: parse + filter """
+
+
+'''综合'''
+def rumorwords_to_weibo_list(keywords, after_time):
+    # search
+    search_pool = _search_weibo_with_keywords(keywords) # a list of mid
+
+    # open each
+    # + filter
+    weibo_pool = dict()
+    for search_mid in search_pool:
+        if search_mid in weibo_pool: continue
+
+        weibo_raw = _open_weibo(search_mid)
+        if weibo_raw == None: continue
+        if weibo_raw['pub_time'] <= after_time: continue
+
+        if weibo_raw['trans_source_mid'] == -1: # raw weibo: add
+            weibo_pool[weibo_raw['mid']] = weibo_raw
+        else:                                   # transmit weibo:
+            # collect raw weibo first
+            if weibo_raw['trans_source_mid'] not in search_pool:
+                # open, add to weibo_pool
+                original_weibo_raw = _open_weibo(weibo_raw['trans_source_mid'])
+                weibo_pool[weibo_raw['trans_source_mid']] = original_weibo_raw
+
+            weibo_pool[weibo_raw['mid']] = weibo_raw
+
+    dump_weibo_dict = parsecontent_filtersolid(weibo_pool)
+
+
+    # 根据得到的关键词列表，反过来搜索
+    nr_list_list = [weibo['nr_list'] for weibo in dump_weibo_dict.values()]
+    ns_list_list = [weibo['ns_list'] for weibo in dump_weibo_dict.values()]
+    nt_list_list = [weibo['nt_list'] for weibo in dump_weibo_dict.values()]
+
+    search_pool2 = try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list)
+    weibo_pool = dict()
+    for search_mid in search_pool2:
+        weibo_raw = _open_weibo(search_mid)
+        
+        if weibo_raw == None: continue
+        # update插入Database时，确保不会重复插入，不需启用时间过滤
+        weibo_raw['trans_source_mid'] = -1
+        weibo_pool[weibo_raw['mid']] = weibo_raw
+
+    dump_weibo_dict2 = parsecontent_filtersolid(weibo_pool)
+
+
+    # 存储
+    weibo_list_ = list(dump_weibo_dict.values())
+    weibo_list_.extend(list(dump_weibo_dict2.values()))
     now = datetime.datetime.now()
-    json.dump(list(dump_weibo_dict.values()), \
-              open(os.path.join(JSON_DIRECTORY, JSON_NAME.format(now.day, now.hour, now.minute, now.second)), "w") )
+    json.dump(weibo_list_, \
+        open(os.path.join(JSON_DIRECTORY, JSON_NAME.format(now.day, now.hour, now.minute, now.second)), "w") )
 
 
 def fetch_rumor_weibo_list(json_name):
