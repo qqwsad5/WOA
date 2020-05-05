@@ -2,7 +2,7 @@
 KEYWORDS = ['谣言', '辟谣', '网传']
 
 '''after this dates stop collecting weibo's transmissions'''
-UPDATE_TRANSMIT_ZONE = 30 # days
+UPDATE_TRANSMIT_ZONE = 7 # days
 
 '''weights for NR, NS, NT'''
 CREDITS = [2, 1, 2]
