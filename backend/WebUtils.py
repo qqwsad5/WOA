@@ -238,7 +238,13 @@ def _search_weibo_with_keywords(keywords):
 
 
 def C_(N, k):
-    pass
+    ans = []
+    arr = np.arange(N)
+    np.random.shuffle(arr)
+    for i in range(N-k+1):
+        ans.append(arr[i:i+k])
+    return ans
+
 
 def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
     # input: N x nr_list, N x ns_list, N x nt_list
@@ -252,8 +258,8 @@ def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
             keywords = '%20'.join(nx_list)
             mids.union(_search_weibo_with_keywords(keywords))
         else:
-            all_5_combinations = C_(len(nx_list), 4)
-            for combination in all_5_combinations:
+            all_k_combinations = C_(len(nx_list), 4)
+            for combination in all_k_combinations:
                 keyword = '%20'.join(nx_list[combination])
                 mids.union(_search_weibo_with_keywords(keywords))
 
