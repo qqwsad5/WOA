@@ -73,11 +73,14 @@ def select_many(table, columns, where):
 
 def select(table, columns, where):
     global _cursor
-    conditional = list(where.keys())[0]
-    argument = (where[conditional],) # list of single-arguments
-    _cursor.execute("SELECT {} FROM {} WHERE {}"\
-                    .format(','.join(columns), table, conditional),\
-                    argument)
+    if len(where) > 0:
+        conditional = list(where.keys())[0]
+        argument = (where[conditional],) # list of single-arguments
+        _cursor.execute("SELECT {} FROM {} WHERE {}"\
+                        .format(','.join(columns), table, conditional),\
+                        argument)
+    else:
+        _cursor.execute("SELECT {} FROM {}".format(','.join(columns), table))
     results = _cursor.fetchall() # 可优化->fetchone()
     return results
 
