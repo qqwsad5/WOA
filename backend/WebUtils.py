@@ -11,7 +11,7 @@ import re
 import requests
 import json
 import time
-
+import numpy as np
 
 JSON_DIRECTORY = os.path.join(\
     os.path.split(os.path.realpath(__file__))[0], "../database/")
