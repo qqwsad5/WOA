@@ -4,6 +4,7 @@ import os
 import Weibo
 import datetime
 import json
+import Meta
 
 DB_DIRECTORY = os.path.join(\
     os.path.split(os.path.realpath(__file__))[0], "../database/")
@@ -215,6 +216,9 @@ def js_respond_show(entry_id, dump=False):
         weibo_list[iweibo]['nickname'] = uid_lookup[weibo_list[iweibo]['uid']]
 
     # transmission part
+    ## stats
+    stats = dict()
+    ## stats of each transmission
     iweibo = 0
     for i_weibo in range(len(weibo_sel)):
         all_trans_id = []
@@ -222,20 +226,32 @@ def js_respond_show(entry_id, dump=False):
         dt_id_list = weibo_sel[iweibo][3]
         if len(dt_id_list) > 0:
             for dt_id in dt_id_list.split(';'):
-                cursor.execute("SELECT trans_id FROM date_transmission WHERE dt_id = ?", (int(dt_id),))
+                cursor.execute("SELECT trans_id, dt_date FROM date_transmission WHERE dt_id = ?", (int(dt_id),))
             trans_id_list_list = cursor.fetchall()
 
             for trans_id_list in trans_id_list_list:
-                all_trans_id.extend(trans_id_list[0].split(';'))
+                trans_ids = trans_id_list[0].split(';')
+                dt_date = trans_id_list[1]
+
+                if dt_date not in stats: stats[dt_date] = 0
+                stats[dt_date] += len(trans_id_str)
+
+                all_trans_id.extend(trans_id_str)
 
             weibo_list[iweibo]['trans_list'] = [int(trans_id_str) for trans_id_str in all_trans_id]
         else:
             weibo_list[iweibo]['trans_list'] = []
 
+        content = weibo_list[iweibo]['content']
+        for keyword in Meta.KEYWORDS:
+            if keyword in content: weibo_list[iweibo]['piyao'] = True
+            else:                  weibo_list[iweibo]['piyao'] = False
+
         iweibo += 1
 
-    if dump: json.dump(weibo_list, open("./.js_respond_show.json", "w"))
-    else:    return json.dumps(weibo_list)
+    if dump: json.dump([stats, weibo_list], open("./.js_respond_show.json", "w"))
+    else:    return json.dumps([stats, weibo_list])
+
 
 def js_respond_transmit(trans_id, dump=False):
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
