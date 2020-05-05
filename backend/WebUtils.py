@@ -260,7 +260,7 @@ def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
         else:
             all_k_combinations = C_(len(nx_list), 4)
             for combination in all_k_combinations:
-                keyword = '%20'.join(nx_list[combination])
+                keywords = '%20'.join(nx_list[combination])
                 mids.union(_search_weibo_with_keywords(keywords))
 
     return mids
