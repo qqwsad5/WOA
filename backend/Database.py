@@ -12,9 +12,9 @@ DB_NAME = "weibo.db"
 J_NAME = "jounal.db"
 
 
-def create_db(db_name):
+def create_db(db_script):
     # Open and read the file as a single buffer
-    fd = open(db_name, 'r')
+    fd = open(db_script, 'r')
     sqlFile = fd.read()
     fd.close()
 
