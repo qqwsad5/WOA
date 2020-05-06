@@ -12,7 +12,7 @@ DB_NAME = "weibo.db"
 J_NAME = "jounal.db"
 
 
-def create_db(db_script):
+def create_db(db_script, db_name):
     # Open and read the file as a single buffer
     fd = open(db_script, 'r')
     sqlFile = fd.read()
@@ -21,7 +21,7 @@ def create_db(db_script):
     # all SQL commands (split on ';')
     sqlCommands = sqlFile.split(';;')
 
-    conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
+    conn = sqlite3.connect(os.path.join(DB_DIRECTORY, db_name))
     c = conn.cursor()
 
     for command in sqlCommands:
