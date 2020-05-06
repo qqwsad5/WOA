@@ -152,6 +152,20 @@ def _fmt_to_seconds(datetime_obj):
     return str(datetime_obj)[:19]
 
 
+def js_respond_clicks():
+    conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
+    cursor_jounal = conn_journal.cursor()
+
+    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
+    num1 = cursor_jounal.fetchone()[0]
+    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
+    num2 = cursor_jounal.fetchone()[0]
+    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
+    num3 = cursor_jounal.fetchone()[0]
+
+    return {'search_number': num1, 'show_number': num2, 'repost_show_number': num3}
+
+
 def js_respond_search(keyword, dump=False):
     # journalize
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
