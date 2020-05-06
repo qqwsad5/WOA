@@ -11,9 +11,10 @@ DB_DIRECTORY = os.path.join(\
 DB_NAME = "weibo.db"
 J_NAME = "jounal.db"
 
-def create_db():
+
+def create_db(db_name):
     # Open and read the file as a single buffer
-    fd = open('./init_table.sql', 'r')
+    fd = open(db_name, 'r')
     sqlFile = fd.read()
     fd.close()
 
@@ -32,6 +33,7 @@ def create_db():
 
     conn.commit()
     conn.close()
+
 
 global _conn
 global _cursor
