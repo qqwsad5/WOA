@@ -268,10 +268,9 @@ def js_respond_show(entry_id, dump=False):
     ## stats of each transmission
     iweibo = 0
     for i_weibo in range(len(weibo_sel)):
-        all_trans_id = []
-
         dt_id_list = weibo_sel[iweibo][3]
         if len(dt_id_list) > 0:
+            all_trans_id = []
             for dt_id in dt_id_list.split(';'):
                 cursor.execute("SELECT trans_id, dt_date FROM date_transmission WHERE dt_id = ?", (int(dt_id),))
             trans_id_list_list = cursor.fetchall()
@@ -281,11 +280,11 @@ def js_respond_show(entry_id, dump=False):
                 dt_date = trans_id_list[1]
 
                 if dt_date not in stats: stats[dt_date] = 0
-                stats[dt_date] += len(trans_id_str)
+                stats[dt_date] += len(trans_ids)
 
-                all_trans_id.extend(trans_id_str)
+                all_trans_id.extend(trans_ids)
 
-            weibo_list[iweibo]['trans_list'] = [int(trans_id_str) for trans_id_str in all_trans_id]
+            weibo_list[iweibo]['trans_list'] = [int(trans_id) for trans_id in all_trans_id]
         else:
             weibo_list[iweibo]['trans_list'] = []
 
