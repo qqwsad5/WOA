@@ -8,7 +8,7 @@ BACKEND_DIRECTORY = os.path.join(\
 sys.path.append(BACKEND_DIRECTORY)
 
 
-from Database import js_respond_search,js_respond_show,js_respond_transmit
+from Database import js_respond_search,js_respond_show,js_respond_transmit,js_respond_clicks
 # from HelloWorld.backend import Database
 # print(Database.js_respond_search('蚊子'))
 
@@ -53,6 +53,32 @@ def transmit(request):
     if request.method=='GET':
         id = request.GET.get('id',default='')
     resp = js_respond_transmit(id)
+    response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
+                            status='200',
+                            reason='success',
+                            charset='utf-8')
+    return response
+
+def clicks(request):
+    resp = js_respond_clicks()
+    response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
+                            status='200',
+                            reason='success',
+                            charset='utf-8')
+    return response
+
+def recommend(request):
+    resp = {
+        '中国': '52',
+        '湖北': '14',
+        '武汉': '22',
+        '美国': '36',
+        '英国': '15',
+        '广州': '36',
+        '北京': '35',
+        '市教委': '28',
+    }
+    resp = json.dumps(resp)
     response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
                             status='200',
                             reason='success',
