@@ -214,7 +214,7 @@ def js_respond_show(entry_id, dump=False):
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
     cursor_journal = conn_journal.cursor()
     cursor_journal.execute("INSERT INTO js_respond_show VALUES (?, ?)",\
-        _fmt_to_seconds(datetime.datetime.now()), entry_id)
+        (_fmt_to_seconds(datetime.datetime.now()), entry_id))
     
     cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
     num = cursor_journal.fetchone()[0]
@@ -304,7 +304,7 @@ def js_respond_transmit(trans_id, dump=False):
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
     cursor_journal = conn_journal.cursor()
     cursor_journal.execute("INSERT INTO js_respond_transmit VALUES (?, ?)",\
-        _fmt_to_seconds(datetime.datetime.now()), trans_id)
+        (_fmt_to_seconds(datetime.datetime.now()), trans_id))
     
     cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
     num = cursor_journal.fetchone()[0]
