@@ -154,14 +154,14 @@ def _fmt_to_seconds(datetime_obj):
 
 def js_respond_clicks():
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
-    cursor_jounal = conn_journal.cursor()
+    cursor_journal = conn_journal.cursor()
 
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
-    num1 = cursor_jounal.fetchone()[0]
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
-    num2 = cursor_jounal.fetchone()[0]
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
-    num3 = cursor_jounal.fetchone()[0]
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
+    num1 = cursor_journal.fetchone()[0]
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
+    num2 = cursor_journal.fetchone()[0]
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
+    num3 = cursor_journal.fetchone()[0]
 
     return {'search_number': num1, 'show_number': num2, 'repost_show_number': num3}
 
@@ -169,16 +169,16 @@ def js_respond_clicks():
 def js_respond_search(keyword, dump=False):
     # journalize
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
-    cursor_jounal = conn_journal.cursor()
+    cursor_journal = conn_journal.cursor()
     
-    cursor_jounal.execute("INSERT INTO js_respond_search VALUES (?, ?)",\
+    cursor_journal.execute("INSERT INTO js_respond_search VALUES (?, ?)",\
         (_fmt_to_seconds(datetime.datetime.now()), keyword))
     
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
-    num = cursor_jounal.fetchone()[0]
-    cursor_jounal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "search_number"))
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
+    num = cursor_journal.fetchone()[0]
+    cursor_journal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "search_number"))
     
-    conn_jounal.commit()
+    conn_journal.commit()
 
     # select
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
@@ -212,15 +212,15 @@ def js_respond_search(keyword, dump=False):
 def js_respond_show(entry_id, dump=False):
     # jounalize
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
-    cursor_jounal = conn_journal.cursor()
-    cursor_jounal.execute("INSERT INTO js_respond_show VALUES (?, ?)",\
+    cursor_journal = conn_journal.cursor()
+    cursor_journal.execute("INSERT INTO js_respond_show VALUES (?, ?)",\
         _fmt_to_seconds(datetime.datetime.now()), entry_id)
     
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
-    num = cursor_jounal.fetchone()[0]
-    cursor_jounal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "show_number"))
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("show_number",))
+    num = cursor_journal.fetchone()[0]
+    cursor_journal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "show_number"))
     
-    conn_jounal.commit()
+    conn_journal.commit()
 
     # dict: mid -> Weibo-dict
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
@@ -302,15 +302,15 @@ def js_respond_show(entry_id, dump=False):
 
 def js_respond_transmit(trans_id, dump=False):
     conn_journal = sqlite3.connect(os.path.join(DB_DIRECTORY, J_NAME))
-    cursor_jounal = conn_journal.cursor()
-    cursor_jounal.execute("INSERT INTO js_respond_transmit VALUES (?, ?)",\
+    cursor_journal = conn_journal.cursor()
+    cursor_journal.execute("INSERT INTO js_respond_transmit VALUES (?, ?)",\
         _fmt_to_seconds(datetime.datetime.now()), trans_id)
     
-    cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
-    num = cursor_jounal.fetchone()[0]
-    cursor_jounal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "repost_show_number"))
+    cursor_journal.execute("SELECT value FROM meta WHERE key = ?", ("repost_show_number",))
+    num = cursor_journal.fetchone()[0]
+    cursor_journal.execute("UPDATE meta SET value = ? WHERE key = ?", (num + 1, "repost_show_number"))
 
-    conn_jounal.commit()
+    conn_journal.commit()
 
     conn = sqlite3.connect(os.path.join(DB_DIRECTORY, DB_NAME))
     cursor = conn.cursor()
