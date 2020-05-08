@@ -172,7 +172,7 @@ def js_respond_search(keyword, dump=False):
     cursor_jounal = conn_journal.cursor()
     
     cursor_jounal.execute("INSERT INTO js_respond_search VALUES (?, ?)",\
-        _fmt_to_seconds(datetime.datetime.now()), keyword)
+        (_fmt_to_seconds(datetime.datetime.now()), keyword))
     
     cursor_jounal.execute("SELECT value FROM meta WHERE key = ?", ("search_number",))
     num = cursor_jounal.fetchone()[0]
