@@ -70,6 +70,7 @@ def transmit(request):
 
 def clicks(request):
     resp = js_respond_clicks()
+    resp = json.dumps(resp)
     response = HttpResponse(content=resp, content_type='application/json;charset = utf-8',
                             status='200',
                             reason='success',
