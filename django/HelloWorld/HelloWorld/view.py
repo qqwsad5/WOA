@@ -53,7 +53,7 @@ def show(request):
                             charset='utf-8')
     return response
 
-print(js_respond_transmit("305"))
+#print(js_respond_transmit("305"))
 
 def transmit(request):
     id = ''
@@ -66,7 +66,7 @@ def transmit(request):
                             charset='utf-8')
     return response
 
-print(js_respond_clicks())
+#print(js_respond_clicks())
 
 def clicks(request):
     resp = js_respond_clicks()
