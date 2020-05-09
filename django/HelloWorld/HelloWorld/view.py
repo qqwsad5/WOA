@@ -26,6 +26,8 @@ def test(request):
                             charset='utf-8')
     return response
 
+#print(js_respond_search("美国"))
+
 def search(request):
     keyword = ''
     if request.method=='GET':
@@ -36,6 +38,9 @@ def search(request):
                             reason='success',
                             charset='utf-8')
     return response
+
+
+#print(js_respond_show("305"))
 
 def show(request):
     id = ''
@@ -48,6 +53,8 @@ def show(request):
                             charset='utf-8')
     return response
 
+print(js_respond_transmit("305"))
+
 def transmit(request):
     id = ''
     if request.method=='GET':
@@ -58,6 +65,8 @@ def transmit(request):
                             reason='success',
                             charset='utf-8')
     return response
+
+print(js_respond_clicks())
 
 def clicks(request):
     resp = js_respond_clicks()
