@@ -5,6 +5,7 @@ import Database
 import numpy as np
 import datetime
 import WebUtils
+import os
 
 
 def _overlap(list1, list2):
@@ -38,7 +39,7 @@ def _insert_new_weibo(weibo, nr, ns, nt):
             entry_ids = [int(entry_id) for entry_id in entry[0].split(';')]
             entries_id = entries_id.union(set(entry_ids))
 
-    entries = Database.select_many('entries', columns=['nr_list', 'ns_list', 'nt_list', 'weibo_list'],\
+    entries = Database.select_many('entries', columns=['nr_list', 'ns_list', 'nt_list', 'weibo_list', 'entry_id'],\
                                   where={'entry_id = ?': list(entries_id)})
 
     ## 找出最佳匹配 entry: bestmatch
@@ -93,8 +94,9 @@ def _insert_new_weibo(weibo, nr, ns, nt):
     else:
         entry_weibo_list = [int(x) for x in bestmatch[3].split(';')]
         if weibo.mid not in entry_weibo_list:
+            print("more than one in same entry now!")
             Database.update('entries', values={'weibo_list': bestmatch[3]+';'+str(weibo.mid)}, \
-                                       where={'entry_id = ?': bestmatch[0]})
+                                       where={'entry_id = ?': bestmatch[4]})
 
     weibo_sel = Database.select('weibo', ['mid'], where={'mid = ?': weibo.mid})
     if len(weibo_sel) == 0:

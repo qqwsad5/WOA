@@ -11,6 +11,9 @@ import re
 import requests
 import json
 import time
+import numpy as np
+
+from skip import *
 
 
 JSON_DIRECTORY = os.path.join(\
@@ -217,22 +220,27 @@ def _get_trans_mid_list(mid):
 def _search_weibo_with_keywords(keywords):
     # search in searching bar
     mids = set()
+    cnt = 0
     for keyword in keywords:
+        print("   keyword #{} among {}".format(cnt, len(keywords)))
+        cnt += 1
         for page_id in range(Meta.SEARCH_PAGES):
             resp = requests.get(Meta.URL_TEMPLATE.format(keyword, keyword, page_id))
             try:
                 card_group = json.loads(resp.text)['data']['cards'][0]['card_group']
             except:
-                print("no more cards found")
+                print("\tno more cards found")
                 break
 
-            print('url：', resp.url, ' --- 条数:', len(card_group))
+            print('\turl：', resp.url, ' --- 条数:', len(card_group))
             for card in card_group:
                 mblog = card['mblog']
                 mid = int(mblog['id'])
                 mids.add(mid)
 
             time.sleep(Meta.SLEEP_SEARCH)
+            if skip():
+                return mids
 
     return mids
 
@@ -251,6 +259,7 @@ def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
     solid_tuples = []
     mids = set()
     for i in range(len(nr_list_list)):
+        print("collecting {}'th entry among {}".format(i, len(nr_list_list)))
         if not _solid_news(nr_list_list[i], ns_list_list[i], nt_list_list[i]): continue
 
         nx_list = np.concatenate([nr_list_list[i], ns_list_list[i], nt_list_list[i]], axis=0)
@@ -259,9 +268,16 @@ def try_collect_by_keywords(nr_list_list, ns_list_list, nt_list_list):
             mids.union(_search_weibo_with_keywords(keywords))
         else:
             all_k_combinations = C_(len(nx_list), 4)
+            cnt = 0
             for combination in all_k_combinations:
+                print("  cnt:{}/comb:{}".format(cnt, len(all_k_combinations)))
                 keywords = '%20'.join(nx_list[combination])
                 mids.union(_search_weibo_with_keywords(keywords))
+                cnt += 1
+
+        if skip():
+            reset_skip()
+            break
 
     return mids
 
@@ -324,6 +340,7 @@ def parsecontent_filtersolid(weibo_pool):
 '''综合'''
 def rumorwords_to_weibo_list(keywords, after_time):
     # search
+    print("searching weibo containing '谣言'")
     search_pool = _search_weibo_with_keywords(keywords) # a list of mid
 
     # open each

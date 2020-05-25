@@ -1,3 +1,4 @@
+
 '''words that tell a weibo is about rumor'''
 KEYWORDS = ['谣言', '辟谣', '网传']
 
@@ -11,7 +12,7 @@ CREDITS = [2, 1, 3]
 WEIGHT_THRES = 5
 
 '''sleep time until next search / update of database'''
-SLEEP_SEARCH = 10
+SLEEP_SEARCH = 5
 SLEEP_UPDATE = 24*60*60
 
 
@@ -71,7 +72,7 @@ def url_to_mid(url):
     result.reverse()
     return int(''.join(result))
 
-
+import datetime
 def fromisoformat(string):
     return datetime.datetime(int(string[:4]), int(string[5:7]), int(string[8:10]), \
                              int(string[11:13]), int(string[14:16]), int(string[17:19]))
