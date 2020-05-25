@@ -232,9 +232,10 @@ def js_respond_show(entry_id, dump=False):
                   for weibo_id_str in cursor.fetchone()[0].split(';')]
 
     # look up weibo uid, content, time
+    weibo_sel = []
     for weibo_dict in weibo_list:
         cursor.execute("SELECT uid, content, update_time, dt_id_list, weibo_time FROM weibo WHERE mid = ?", (weibo_dict['mid'],))
-    weibo_sel = cursor.fetchall()
+        weibo_sel.append(cursor.fetchone())
 
     uid_lookup = dict()
     for iweibo in range(len(weibo_list)):
@@ -250,9 +251,10 @@ def js_respond_show(entry_id, dump=False):
 
     # uid -> nickname
     uid_lookup_list = list(uid_lookup.keys())
+    nicknames = []
     for uid in uid_lookup_list:
         cursor.execute("SELECT nickname FROM user_lut where user_id = ?", (uid,))
-    nicknames = cursor.fetchall()
+        nicknames.append(cursor.fetchone())
 
     i_nickname = 0
     for uid in uid_lookup.keys():
