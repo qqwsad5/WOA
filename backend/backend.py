@@ -9,16 +9,15 @@ import Database
 import time
 
 if __name__ == '__main__':
-    phone_number = ''
-    password = ''
+    phone_number = '13716393192'
+    password = 'dadaliao980308'
     
-    Database.connect()
     print("hanlp model load success")
     Meta.load_hanlp_recognizer()
 
     iters_before_find_repost = Meta.SLEEP_UPDATE // Meta.SLEEP_SEARCH
     while True:
-
+        Database.connect()
         rumorwords_update_time = Database.read_update_time()
 
         WebUtils.rumorwords_to_weibo_list(Meta.KEYWORDS, rumorwords_update_time)

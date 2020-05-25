@@ -3,7 +3,7 @@
 KEYWORDS = ['谣言', '辟谣', '网传']
 
 '''after this dates stop collecting weibo's transmissions'''
-UPDATE_TRANSMIT_ZONE = 30 # days
+UPDATE_TRANSMIT_ZONE = 7 # days
 
 '''weights for NR, NS, NT'''
 CREDITS = [2, 1, 3]
@@ -74,6 +74,7 @@ def url_to_mid(url):
 
 import datetime
 def fromisoformat(string):
+    if type(string) == datetime.datetime: return string
     return datetime.datetime(int(string[:4]), int(string[5:7]), int(string[8:10]), \
                              int(string[11:13]), int(string[14:16]), int(string[17:19]))
 
